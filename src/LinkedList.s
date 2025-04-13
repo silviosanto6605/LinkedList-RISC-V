@@ -1,8 +1,8 @@
 .data
 
 listInput: .string 'ciaoprova123'
-START_ADDR: .word 0x10000000 #indirizzo di inizio dei dati statici
-END_ADDR: .word 0x10000096 #indirizzo di fine dei dati (START_ADDR + 30*5 siccome posso avere max 30 nodi da 5 byte l'uno)
+NEXT_FREE_ADDR: .word 0x10000000 #indirizzo di inizio dei dati statici
+
 
 .text
 
@@ -11,6 +11,7 @@ li s2,0 #HEAD_PTR puntatore alla testa della lista
 li s3,0 #LAST_PTR puntatore all'ultimo elemento della lista
 
 li s4,0 #counter dei nodi
+la s5,NEXT_FREE_ADDR #carico NEXT_FREE_ADDR
 # jal PARSING  #devo implementare la logica di parsing
 
 li a0, 101
@@ -27,7 +28,8 @@ ADD: #parametro a0
 
  #chiamata alla funzione individua prox indirizzo
  # da gestire lo stack
- # jal find_next_free_addr  #ritorna in a1 il prossimo indirizzo di scrittura
+ 
+jal find_next_free_addr  #ritorna in a1 il prossimo indirizzo di scrittura
  
  
 sb a0,0(a1) #scrivo il dato,parametro dì ADD, nel campo DATA del nodo
@@ -43,6 +45,7 @@ jr ra
 
 
 
+
  #caso in cui il nodo aggiunto sia il primo
  firstADD:
      add s2,zero,a1 #HEAD_PTR = indirizzo ultimo nodo
@@ -53,7 +56,22 @@ jr ra
  
 
         
-     
+find_next_free_addr:
+    lb t1,0(s5) #byte di DATA
+    lw t2,1(s5) #4B di PAHEAD
+    
+    or t3,t1,t2 #Sono tutti 0? cioé: è libero?
+    bne t3,zero,no_space #se no aumenta
+    mv a1,s5
+    ret
+    
+    no_space:
+        addi s5,s5,1 #analizzo a partire dal bit successivo
+        j find_next_free_addr #continua finche non trovi 5 byte liberi
+    
+ 
+        
+         
     
         
     
