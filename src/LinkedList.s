@@ -12,6 +12,7 @@ li s4,0 #counter dei nodi
 li s5,0x10000000 #carico NEXT_FREE_ADDR, indirizzo di inizio dei dati statici
 # jal PARSING  #devo implementare la logica di parsing
 
+
 li a0,83 #S
 jal ADD
 
@@ -49,33 +50,53 @@ end:
 
 
 
-
 PRINT:
+
+    beqz s2,end_print
     
-    mv t0,s2        #carico l'indirizzo della HEAD
-    
-    print_loop:
-        beqz t0 end_print #se la HEAD è zero, vuol dire che non c'è un nodo
+    addi sp,sp,-4 #salvo ra
+    sw ra, 0(sp)
 
-        lb, a0,0(t0) #carico il carattere 
-        li a7,11
-        ecall
+    mv a0,s2 #passo come parametro s2, cioé la HEAD 
+    jal print_recursive
 
-        li a0,44
-        li a7,11 #stampo un separatore
-        ecall
+    lw ra,0(sp) 
+    addi sp,sp,4 #ripristino il ra
 
-        addi t1,t0,1 #allineo alla PAHEAD
-        lw t0,0(t1) # carico il puntatore al nodo successivo (PAHEAD)
-        beqz t0, end_print #se non c'è puntatore al successivo ho finito
-        j print_loop
     
     end_print:
         li a0,10
         li a7,11
         ecall
         ret
+    
+    print_recursive:
+        beqz a0, return_recursive_print #Base: se la HEAD è zero, vuol dire che non c'è un nodo
         
+        addi sp,sp,-8 #devo salvare ra e a0, che contiene il puntatore al nodo attuale
+        sw ra,0(sp)
+        sw a0,4(sp)
+
+        lb a0,0(a0) # carico e stampo il carattere del nodo corrente, puntato da a0
+        li a7,11
+        ecall
+
+        li a0,44 #stampo un separatore
+        li a7,11 
+        ecall 
+
+        lw a0,4(sp) #riprendo il puntatore al nodo
+        addi a0,a0,1 #...e mi allineo al campo PAHEAD per avere il puntatore al successivo
+        lw a0,0(a0) #e infine carico la HEAD del nodo successivo
+        
+        jal print_recursive
+        
+        lw ra,0(sp)
+        addi sp,sp,8 #ripristino la stack
+
+
+    return_recursive_print:
+        ret
         
     
     
@@ -142,13 +163,13 @@ check_bytes:
         sw a0,0(sp) #salvo  a0 nello stack
         
         
-        mv a0,a1 #DEBUG: MOSTRA INDIRIZZO
-        li a7,34
-        ecall
+        # mv a0,a1 #DEBUG: MOSTRA INDIRIZZO
+        # li a7,34
+        # ecall
         
-        li a0,10 #stampo un ritorno di linea
-        li a7,11
-        ecall
+        # li a0,10 #stampo un ritorno di linea
+        # li a7,11
+        # ecall
         
         lw a0,0(sp)
         addi sp,sp,4 # ripristino la stack
