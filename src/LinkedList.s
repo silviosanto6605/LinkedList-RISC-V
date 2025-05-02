@@ -28,10 +28,10 @@ li a0,105 #i
 jal ADD
 
 li a0,111 #o
-    jal ADD
+jal ADD
 
 
-li t4,20
+li t4,5
 
 loop_test:
     beqz t4,end
@@ -40,14 +40,45 @@ loop_test:
     jal ADD
     addi t4,t4,-1
     j loop_test
-     
+    
 
 end:
+    jal PRINT
     li a7,10
     ecall
 
 
 
+
+PRINT:
+    
+    mv t0,s2        #carico l'indirizzo della HEAD
+    
+    print_loop:
+        beqz t0 end_print #se la HEAD è zero, vuol dire che non c'è un nodo
+
+        lb, a0,0(t0) #carico il carattere 
+        li a7,11
+        ecall
+
+        li a0,44
+        li a7,11 #stampo un separatore
+        ecall
+
+        addi t1,t0,1 #allineo alla PAHEAD
+        lw t0,0(t1) # carico il puntatore al nodo successivo (PAHEAD)
+        beqz t0, end_print #se non c'è puntatore al successivo ho finito
+        j print_loop
+    
+    end_print:
+        li a0,10
+        li a7,11
+        ecall
+        ret
+        
+        
+    
+    
 
 
 
@@ -107,9 +138,20 @@ check_bytes:
         mv a1,s5
         addi s5,s5,5 #siccome ora 5 byte sono occupati, faccio un grande balzo in avanti
         
-        mv t6,a1 #DEBUG: MOSTRA INDIRIZZO
+        addi sp,sp,-4
+        sw a0,0(sp) #salvo  a0 nello stack
+        
+        
+        mv a0,a1 #DEBUG: MOSTRA INDIRIZZO
         li a7,34
         ecall
+        
+        li a0,10 #stampo un ritorno di linea
+        li a7,11
+        ecall
+        
+        lw a0,0(sp)
+        addi sp,sp,4 # ripristino la stack
         
         ret
 
