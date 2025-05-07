@@ -61,7 +61,14 @@ end:
     jal ADD
     jal PRINT
     
-    
+
+    li a0,48 #carico carattere ' '
+    jal get_category
+
+    li a7,1
+    ecall
+
+
     
     li a7,10
     ecall
@@ -75,7 +82,7 @@ PRINT:
     addi sp,sp,-4 #salvo ra
     sw ra, 0(sp)
 
-    mv a0,s2 #passo come parametro s2, cioé la HEAD 
+    mv a0,s2 #passo come parametro s2, cio� la HEAD 
     jal print_recursive
 
     lw ra,0(sp) 
@@ -89,7 +96,7 @@ PRINT:
         ret
     
     print_recursive:
-        beqz a0, return_recursive_print #Base: se la HEAD è zero, vuol dire che non c'è un nodo
+        beqz a0, return_recursive_print #Base: se la HEAD � zero, vuol dire che non c'� un nodo
         
         addi sp,sp,-8 #devo salvare ra e a0, che contiene il puntatore al nodo attuale
         sw ra,0(sp)
@@ -134,7 +141,7 @@ ADD: # parametro in a0 (DATA)
    
    addi a1,a1,-1              #siccome avevo incrementato di uno per scrivere, devo rifixare
 
-    beq zero,s4,firstADD       # Se è il primo nodo, salta
+    beq zero,s4,firstADD       # Se � il primo nodo, salta
     sw a1,1(s3)                # Aggiorna PAHEAD del nodo precedente
     mv s3,a1                   # Aggiorna LAST_PTR
     addi s4,s4,1               # Incrementa il contatore nodi
@@ -161,17 +168,17 @@ DEL:
     beqz s2, end_DEL #controllo se ci sono nodi
 
 
-    check_head_deletion: #il carattere è nella testa?
+    check_head_deletion: #il carattere � nella testa?
 
         lb t0,0(s2) #carico il DATA del nodo HEAD 
-        bne t0,a0, del_find_next # controlla se eliminarla in quanto è presente il carattere parametro da eliminare
+        bne t0,a0, del_find_next # controlla se eliminarla in quanto � presente il carattere parametro da eliminare
 
         addi t1,s2,1 # mi allineo al PAHEAD
         lw t1, 0(s2)  #carica il PAHEAD del nodo testa, ossia l'indirizzo del nodo seguente...
-        mv s2,t1 #...che diventerà il nuovo nodo HEAD, quindi aggiorno HEAD_PTR
+        mv s2,t1 #...che diventer� il nuovo nodo HEAD, quindi aggiorno HEAD_PTR
         addi s4,s4,-1 #e decremento il counter dei nodi
 
-        beqz, s2, empty_list_update_lastptr #ovviamente se la lista è vuota, devo aggiornare anche LAST_PTR
+        beqz, s2, empty_list_update_lastptr #ovviamente se la lista � vuota, devo aggiornare anche LAST_PTR
         j check_head_deletion #controlla se anche la nuova testa deve essere eliminata
 
 
@@ -187,7 +194,7 @@ DEL:
     del_find_loop:
         addi t3,t2,1 # allinea al PAHEAD
         lw t3,0(t3) #carica il puntatore al nodo successivo
-        beqz t3,end_DEL #e se non ce n'è uno termina
+        beqz t3,end_DEL #e se non ce n'� uno termina
 
         lb t4,0(t3) #carica il carattere (DATA) del nodo successivo
         bne t4,a0,del_go_next # se il carattere non coincide, vai avanti
@@ -198,7 +205,7 @@ DEL:
         addi t6,t2,1 #allinea al PAHEAD del nodo corrente
         sw t5, 0(t6) #e scrivilo all'interno del PAHEAD nodo corrente
 
-        beq t3,s3,update_last_ptr #se il nodo è l'ultimo aggiorna il LAST_PTR
+        beq t3,s3,update_last_ptr #se il nodo � l'ultimo aggiorna il LAST_PTR
 
         addi s4,s4,-1 #decrementa il contatore 
         j del_find_loop
@@ -225,12 +232,86 @@ DEL:
         
 
 
+# parametro in a0, mi restituisce in a0 un intero per la categoria
+# 3 -> MAIUSCOLO 
+# 2 -> minuscolo
+# 1 -> numero
+# 0 -> carattere speciale
+# -1 -> carattere non valido
+get_category:
+    
+    addi sp,sp,-4
+    sw ra, 0(sp) #salvo il valore di ra
+
+    #controlla se il carattere � ammissibile ( 32 <= a0 <= 125)
+    li t0,32
+    blt a0,t0,char_not_valid 
+    li t0,125
+    bgt a0,t0,char_not_valid
+
+
+    #Controllo se la lettera � maiuscola (ASCII tra 65-90)
+    li t0,65 # 'A'
+    li t1,90 # 'Z'
+    blt a0,t0, check_lowercase #lettera minore di 'A'
+    ble a0,t1, is_uppercase #lettera minore o uguale a 'Z', quindi maiuscola
+
+
+
+
+    check_lowercase:
+        #Controllo se 97<x<122
+        li t0,97 # 'a'
+        li t1,122 # 'z'
+        blt a0,t0,check_number # lettera minore di 'a'
+        ble a0,t0, is_lowercase
+
+    check_number:
+        #Controllo se 97<x<122
+        li t0,48 # '0'
+        li t1,57 # '9'
+        blt a0,t0,is_special #allora vuol dire che � per forza speciale 
+        ble a0,t0, is_number #
+
+
+
+        is_uppercase:
+        li a0, 3  # categoria 3 per maiuscole
+        j return_category
+
+        is_lowercase:
+            li a0, 2  # categoria 2 per minuscole
+            j return_category
+
+        is_number:
+            li a0, 1  # categoria 1 per numeri
+            j return_category
+
+        is_special:
+            li a0, 0  # categoria 0 per caratteri speciali
+            j return_category
+
+        char_not_valid:
+            li a0,-1  #se il carattere non � valido restituisci -1
+
+        return_category:
+            lw ra,0(sp)
+            addi sp,sp,4
+            ret
+        
+
+
+
+
+
+
+
 find_next_free_addr: #ritorno in a1
     li t0,5 #devo trovare 5 byte
 
     check_bytes:
         lb t1,0(s5) #leggo il byte corrente
-        bnez t1,reset_counter # se non trovo zero vuol dire che non c'è spazio
+        bnez t1,reset_counter # se non trovo zero vuol dire che non c'� spazio
         
         addi t0,t0,-1 #decremento il contatore di ciclo (4 byte da analizzare, 3 byte da analizzare) 
         beqz t0,found
@@ -254,7 +335,7 @@ find_next_free_addr: #ritorno in a1
             
             
             # mv a0,a1 #DEBUG: MOSTRA INDIRIZZO
-            # li a7,34
+                # li a7,34
             # ecall
             
             # li a0,10 #stampo un ritorno di linea
