@@ -36,12 +36,56 @@ li s5,0x10000000 #carico NEXT_FREE_ADDR, indirizzo di inizio dei dati statici
     jal ADD
     li a0,49  # '1'
     jal ADD
+ 
 
-    jal PRINT # Stampa prima di SORT
-    jal SORT
-    jal PRINT # Stampa dopo SORT
+
 li a7,10
 ecall
+
+REV:
+
+    addi sp,sp,-4
+    sw ra, 0(sp)
+
+    #Se c'è un solo nodo, banalmente invertita
+    li t0,1
+    ble s4,t0,end_rev
+
+    mv t1,s2 #parto dalla HEAD
+    li t2,0 #contatore elementi pushati, mi serve dopo
+
+    rev_push_phase:
+
+        beqz t1, end_rev_push_phase # se il prossimo nodo è nullo, termina push
+        lb t3, 0(t1) #DATA del nodo corrente
+        addi sp,sp,-4 #spreco potenziale di spazio, ma utile per evitare problemi di allineamento
+        sb t3,0(sp) #pusho il DATA del nodo corrente nello stack
+
+        addi t2,t2,1 #aumento contatore pushati
+        addi t4,t1,1 #allineo al PAHEAD
+
+        lw t1,0(t4) #carico l'indirizzo al successivo
+        j rev_push_phase
+    
+    end_rev_push_phase:
+        mv t1,s2 # ricomincio dalla HEAD per i pop
+    
+    rev_pop_phase:
+        beqz t2, end_rev #Quando li ho poppati tutti, ho finito
+        
+        lb t3, 0(sp) #pop
+        sb t3,0(t1) #scrivo il DATA poppato nel nodo attuale
+        addi sp,sp,4
+        addi t2,t2,-1
+
+        addi t4,t1,1 #allineo al PAHEAD
+        lw t1,0(t4) #carico il  nodo successivo per scriverci dentro
+        j rev_pop_phase
+
+    end_rev:
+        lw ra, 0(sp)        
+        addi sp, sp, 4
+        ret
 
 
 
@@ -362,12 +406,6 @@ get_category:
         
 
 
-
-
-
-
-
-
 find_next_free_addr: #ritorno in a1
     li t0,5 #devo trovare 5 byte
 
@@ -408,10 +446,4 @@ find_next_free_addr: #ritorno in a1
             addi sp,sp,4 # ripristino la stack
             
             ret
-
-
-
-
-
-
 
