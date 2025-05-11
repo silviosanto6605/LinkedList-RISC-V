@@ -1,6 +1,6 @@
 .data
 
-    listInput: .string "ADD(;)~ADD(aaa)~A DD(a)~ADD(b)~ADD(a)~ADD(2)~ADD(E)~ADD(r)~ADD(4)~ADD(,)~ADD(w)~"
+    listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~ ADD(9)PRINT~PRINT ~REV~SOR~PRINT~DEL(b) ~DEL(B)~PRI~PRINT~SORT~PRINT"
     
 
 .text
@@ -11,8 +11,6 @@ li s3,0 #LAST_PTR puntatore all'ultimo elemento della lista
 li s4,0 #counter dei nodi
 li s5,0x10000000 #carico NEXT_FREE_ADDR, indirizzo di inizio dei dati statici
 jal PARSING  #devo implementare la logica di parsing
-
-jal PRINT
 
 
 li a7,10
@@ -147,38 +145,38 @@ PARSING:
         addi s1,s1,1
         lb t0,0(s1)
         li t1,68 #controllo D,  carattere successivo al primo, già controllato
-        bne t0,t1, invalid_add_format
+        bne t0,t1, invalid_format
 
         addi s1,s1,1
         lb t0,0(s1)
         li t1,68 # D
-        bne t0,t1,invalid_add_format
+        bne t0,t1,invalid_format
 
         addi s1,s1,1
         lb t0,0(s1)
         li t1,40 # "("
-        bne t0,t1, invalid_add_format
+        bne t0,t1, invalid_format
 
         #leggo il parametro e controllo la sua validità (32<x<125)
         addi s1,s1,1
         lb a0,0(s1)
 
         li t1,32
-        blt a0,t1,invalid_add_format
+        blt a0,t1,invalid_format
         li t1,125
-        bgt a0,t1,invalid_add_format
+        bgt a0,t1,invalid_format
 
         addi s1,s1,1
         lb t0,0(s1)
         li t1,41 # ")"
-        bne t0,t1, invalid_add_format
+        bne t0,t1, invalid_format
 
 
         #Controllo terminatore
 
         addi s1,s1,1
         jal verify_command_terminator
-        beqz a1,invalid_add_format
+        beqz a1,invalid_format
 
         li a1,1 #segnalo il successo mettendo in a1=1
         
@@ -186,25 +184,164 @@ PARSING:
         addi sp,sp,4
         ret
 
-    invalid_add_format:
-        li a1,0
+   
+
+
+
+
+
+
+    
+    verify_del_format:
+        addi sp,sp,-4
+        sw ra,0(sp)
+
+        addi s1,s1,1
+        lb t0,0(s1)
+        li t1,69 #controllo E,  carattere successivo al primo, già controllato
+        bne t0,t1, invalid_format
+
+        addi s1,s1,1
+        lb t0,0(s1)
+        li t1,76 # L
+        bne t0,t1,invalid_format
+
+        addi s1,s1,1
+        lb t0,0(s1)
+        li t1,40 # "("
+        bne t0,t1, invalid_format
+
+        #leggo il parametro e controllo la sua validità (32<x<125)
+        addi s1,s1,1
+        lb a0,0(s1)
+
+        li t1,32
+        blt a0,t1,invalid_format
+        li t1,125
+        bgt a0,t1,invalid_format
+
+        addi s1,s1,1
+        lb t0,0(s1)
+        li t1,41 # ")"
+        bne t0,t1, invalid_format
+
+
+        #Controllo terminatore
+
+        addi s1,s1,1
+        jal verify_command_terminator
+        beqz a1,invalid_format
+
+        li a1,1 #segnalo il successo mettendo in a1=1
         
         lw ra,0(sp)
         addi sp,sp,4
         ret
 
-    verify_del_format:
-        ecall
+   
     
-    verify_print_format:
-        ecall
-
     verify_rev_format:
-        ecall
+        addi sp,sp,-4
+        sw ra,0(sp)
+
+        addi s1,s1,1
+        lb t0,0(s1)
+        li t1,69 #controllo E,  carattere successivo al primo, già controllato
+        bne t0,t1, invalid_format
+
+        addi s1,s1,1
+        lb t0,0(s1)
+        li t1,86 # V
+        bne t0,t1,invalid_format
+
+
+        #Controllo terminatore
+        addi s1,s1,1
+        jal verify_command_terminator
+        beqz a1,invalid_format
+
+        li a1,1 #segnalo il successo mettendo in a1=1
+        
+        lw ra,0(sp)
+        addi sp,sp,4
+        ret
+
+    
     
     verify_sort_format:
-        ecall
+        addi sp,sp,-4
+        sw ra,0(sp)
+
+        addi s1,s1,1
+        lb t0,0(s1)
+        li t1,79 # O
+        bne t0,t1, invalid_format
+
+        addi s1,s1,1
+        lb t0,0(s1)
+        li t1,82 # R
+        bne t0,t1,invalid_format
+
+        addi s1,s1,1
+        lb t0,0(s1)
+        li t1,84 # T
+        bne t0,t1,invalid_format
+
+
+        #Controllo terminatore
+        addi s1,s1,1
+        jal verify_command_terminator
+        beqz a1,invalid_format
+
+        li a1,1 #segnalo il successo mettendo in a1=1
         
+        lw ra,0(sp)
+        addi sp,sp,4
+        ret
+
+    verify_print_format:
+        addi sp,sp,-4
+        sw ra,0(sp)
+
+        addi s1,s1,1
+        lb t0,0(s1)
+        li t1,82 # R
+        bne t0,t1, invalid_format
+
+        addi s1,s1,1
+        lb t0,0(s1)
+        li t1,73 # I
+        bne t0,t1,invalid_format
+        
+        addi s1,s1,1
+        lb t0,0(s1)
+        li t1,78 # N
+        bne t0,t1,invalid_format
+
+        addi s1,s1,1
+        lb t0,0(s1)
+        li t1,84 # T
+        bne t0,t1,invalid_format
+
+
+        #Controllo terminatore
+        addi s1,s1,1
+        jal verify_command_terminator
+        beqz a1,invalid_format
+
+        li a1,1 #segnalo il successo mettendo in a1=1
+        
+        lw ra,0(sp)
+        addi sp,sp,4
+        ret
+
+
+    invalid_format:
+        li a1,0
+        
+        lw ra,0(sp)
+        addi sp,sp,4
+        ret
 
     
     verify_command_terminator:
