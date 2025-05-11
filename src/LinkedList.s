@@ -1,7 +1,7 @@
 .data
 
-listInput: .string "ciaoprova123"
-
+    listInput: .string "ADD(;)~ADD(aaa)~A DD(a)~ADD(b)~ADD(a)~ADD(2)~ADD(E)~ADD(r)~ADD(4)~ADD(,)~ADD(w)~"
+    
 
 .text
 
@@ -10,44 +10,245 @@ li s2,0 #HEAD_PTR puntatore alla testa della lista
 li s3,0 #LAST_PTR puntatore all'ultimo elemento della lista
 li s4,0 #counter dei nodi
 li s5,0x10000000 #carico NEXT_FREE_ADDR, indirizzo di inizio dei dati statici
-# jal PARSING  #devo implementare la logica di parsing
+jal PARSING  #devo implementare la logica di parsing
 
-
-
-    li a0,90  # 'Z'
-    jal ADD
-    li a0,121 # 'y'
-    jal ADD
-    li a0,56  # '8'
-    jal ADD
-    li a0,45  # '-'
-    jal ADD
-    li a0,88  # 'X'
-    jal ADD
-    li a0,119 # 'w'
-    jal ADD
-    li a0,55  # '7'
-    jal ADD
-    li a0,43  # '+'
-    jal ADD
-    li a0,90  # 'Z' (duplicato)
-    jal ADD
-    li a0,121 # 'y' (duplicato)
-    jal ADD
-    li a0,49  # '1'
-    jal ADD
- 
+jal PRINT
 
 
 li a7,10
 ecall
+
+
+PARSING:
+    addi sp,sp,-4
+    sw ra,0(sp)
+
+
+    parsing_loop:
+    
+        lb t0,0(s1)
+        beqz t0,end_parsing
+
+        li t1,32 #spazio
+        beq t0,t1,skip_space_or_tilde
+
+        li t1,126 #tilde
+        beq t0,t1,skip_space_or_tilde
+
+        jal identify_command
+
+
+    skip_space_or_tilde:
+        addi s1,s1,1
+        j parsing_loop
+
+    end_parsing:
+        lw ra,0(sp)
+        addi sp,sp,4
+        ret
+
+
+    identify_command:   
+        addi sp,sp,-4
+        sw ra,0(sp)
+
+        lb t0,0(s1)
+
+        li t1,65 #se inizia per A
+        beq t0,t1,process_add_command
+
+        li t1, 80   #inizia per P
+        beq t0, t1, process_print_command
+        
+        li t1, 83         # ASCII 'S'
+        beq t0, t1, process_sort_command
+        
+        li t1, 82         # ASCII 'R'
+        beq t0, t1, process_rev_command
+        
+        li t1, 68 #inizia per P
+        beq t0, t1, process_del_command
+        
+        j invalid_command
+
+
+    find_next_command:
+        #vai avanti finché non trovi o tilde o fine stringa
+        lb t0,0(s1)
+        beqz t0,end_parsing
+
+        li t1,126 #tilde
+        beq t0,t1, skip_space_or_tilde
+        addi s1,s1,1
+        j find_next_command
+    
+
+    invalid_command:
+        #se il comando non è valido, vai avanti finche non trovi o tilde o stringa (cioé salta a find_next_command)
+        j find_next_command
+
+
+
+    # PROCESSO I SINGOLI COMANDI
+    # ossia controllo se rispettano il formato richiesto o sono invalidi
+    # nel caso in cui siano validi, cioé la funzione di verifica mi abbia ritornato 1 e non 0
+    # allora li eseguo
+
+
+
+    process_add_command:
+
+        jal verify_add_format
+        beqz a1,invalid_command
+        jal ADD
+        j find_next_command
+
+    process_print_command:
+        jal verify_print_format
+        beqz a0, invalid_command    
+        
+        jal PRINT
+
+        j find_next_command
+
+    process_sort_command:
+        jal verify_sort_format
+        beqz a0, invalid_command    
+        
+        jal SORT
+
+        j find_next_command
+
+    process_rev_command:
+        jal verify_rev_format
+        beqz a0, invalid_command    
+        
+        jal REV
+
+        j find_next_command
+
+    process_del_command:
+        jal verify_del_format
+        beqz a0, invalid_command    
+        
+        jal DEL
+
+        j find_next_command
+
+
+
+
+    #VERIFICA del formato -> funzione che ritorna in a1 1 se formato valido e 0 se non valido
+
+    verify_add_format:
+        addi sp,sp,-4
+        sw ra,0(sp)
+
+        addi s1,s1,1
+        lb t0,0(s1)
+        li t1,68 #controllo D,  carattere successivo al primo, già controllato
+        bne t0,t1, invalid_add_format
+
+        addi s1,s1,1
+        lb t0,0(s1)
+        li t1,68 # D
+        bne t0,t1,invalid_add_format
+
+        addi s1,s1,1
+        lb t0,0(s1)
+        li t1,40 # "("
+        bne t0,t1, invalid_add_format
+
+        #leggo il parametro e controllo la sua validità (32<x<125)
+        addi s1,s1,1
+        lb a0,0(s1)
+
+        li t1,32
+        blt a0,t1,invalid_add_format
+        li t1,125
+        bgt a0,t1,invalid_add_format
+
+        addi s1,s1,1
+        lb t0,0(s1)
+        li t1,41 # ")"
+        bne t0,t1, invalid_add_format
+
+
+        #Controllo terminatore
+
+        addi s1,s1,1
+        jal verify_command_terminator
+        beqz a1,invalid_add_format
+
+        li a1,1 #segnalo il successo mettendo in a1=1
+        
+        lw ra,0(sp)
+        addi sp,sp,4
+        ret
+
+    invalid_add_format:
+        li a1,0
+        
+        lw ra,0(sp)
+        addi sp,sp,4
+        ret
+
+    verify_del_format:
+        ecall
+    
+    verify_print_format:
+        ecall
+
+    verify_rev_format:
+        ecall
+    
+    verify_sort_format:
+        ecall
+        
+
+    
+    verify_command_terminator:
+        #verifica che il comando termini con un temrinatore valido (1), ritorno in a1
+        addi sp, sp, -4
+        sw ra, 0(sp)
+        
+        skip_spaces_after_command:
+            lb t0, 0(s1)
+            li t1, 32        # ASCII spazio
+            bne t0, t1, check_terminator
+            addi s1, s1, 1
+            j skip_spaces_after_command
+        
+        check_terminator:
+            # Controllo se fine stringa
+            beqz t0, valid_terminator
+            
+            # Controllo se tilde
+            li t1, 126      
+            beq t0, t1, valid_terminator
+            
+            li a1, 0
+            j end_verify_terminator
+        
+        valid_terminator:
+            li a1, 1
+        
+        end_verify_terminator:
+            lw ra, 0(sp)
+            addi sp, sp, 4
+            ret
+
+
+
+
+
 
 REV:
 
     addi sp,sp,-4
     sw ra, 0(sp)
 
-    #Se c'� un solo nodo, banalmente invertita
+    #Se c'? un solo nodo, banalmente invertita
     li t0,1
     ble s4,t0,end_rev
 
@@ -56,7 +257,7 @@ REV:
 
     rev_push_phase:
 
-        beqz t1, end_rev_push_phase # se il prossimo nodo � nullo, termina push
+        beqz t1, end_rev_push_phase # se il prossimo nodo ? nullo, termina push
         lb t3, 0(t1) #DATA del nodo corrente
         addi sp,sp,-4 #spreco potenziale di spazio, ma utile per evitare problemi di allineamento
         sb t3,0(sp) #pusho il DATA del nodo corrente nello stack
