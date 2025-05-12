@@ -1,6 +1,6 @@
 .data
 
-    listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~ ADD(9)PRINT~PRINT ~REV~SOR~PRINT~DEL(b) ~DEL(B)~PRI~PRINT~SORT~PRINT"
+    listInput: .string "ADD(S) ~ ADD(i) ~ ADD(l) ~ ADD(v) ~ ADD(i) ~ADD(o) ~ ADD(;) ~ ADD(9)PRINT~PRINT ~REV~SOR~PRINT~DEL(b) ~DEL(B)~PRI~PRI~NT~REV~SO~RT~~PRINT"
     
 
 .text
@@ -52,26 +52,26 @@ PARSING:
 
         lb t0,0(s1)
 
-        li t1,65 #se inizia per A
+        li t1,65    #inizia per A?
         beq t0,t1,process_add_command
 
-        li t1, 80   #inizia per P
+        li t1, 80   #inizia per P?
         beq t0, t1, process_print_command
         
-        li t1, 83         # ASCII 'S'
+        li t1, 83   #inizia per S?
         beq t0, t1, process_sort_command
         
-        li t1, 82         # ASCII 'R'
+        li t1, 82   #inizia per R?
         beq t0, t1, process_rev_command
         
-        li t1, 68 #inizia per P
+        li t1, 68   #inizia per D?
         beq t0, t1, process_del_command
         
         j invalid_command
 
 
     find_next_command:
-        #vai avanti finché non trovi o tilde o fine stringa
+        #vai avanti finch? non trovi o tilde o fine stringa
         lb t0,0(s1)
         beqz t0,end_parsing
 
@@ -82,14 +82,14 @@ PARSING:
     
 
     invalid_command:
-        #se il comando non è valido, vai avanti finche non trovi o tilde o stringa (cioé salta a find_next_command)
+        #se il comando non ? valido, vai avanti finche non trovi o tilde o stringa (cio? salta a find_next_command)
         j find_next_command
 
 
 
     # PROCESSO I SINGOLI COMANDI
     # ossia controllo se rispettano il formato richiesto o sono invalidi
-    # nel caso in cui siano validi, cioé la funzione di verifica mi abbia ritornato 1 e non 0
+    # nel caso in cui siano validi, cio? la funzione di verifica mi abbia ritornato 1 e non 0
     # allora li eseguo
 
 
@@ -144,7 +144,7 @@ PARSING:
 
         addi s1,s1,1
         lb t0,0(s1)
-        li t1,68 #controllo D,  carattere successivo al primo, già controllato
+        li t1,68 #controllo D,  carattere successivo al primo, gi? controllato
         bne t0,t1, invalid_format
 
         addi s1,s1,1
@@ -157,7 +157,7 @@ PARSING:
         li t1,40 # "("
         bne t0,t1, invalid_format
 
-        #leggo il parametro e controllo la sua validità (32<x<125)
+        #leggo il parametro e controllo la sua validit? (32<x<125)
         addi s1,s1,1
         lb a0,0(s1)
 
@@ -198,7 +198,7 @@ PARSING:
 
         addi s1,s1,1
         lb t0,0(s1)
-        li t1,69 #controllo E,  carattere successivo al primo, già controllato
+        li t1,69 #controllo E,  carattere successivo al primo, gi? controllato
         bne t0,t1, invalid_format
 
         addi s1,s1,1
@@ -211,7 +211,7 @@ PARSING:
         li t1,40 # "("
         bne t0,t1, invalid_format
 
-        #leggo il parametro e controllo la sua validità (32<x<125)
+        #leggo il parametro e controllo la sua validit? (32<x<125)
         addi s1,s1,1
         lb a0,0(s1)
 
@@ -246,7 +246,7 @@ PARSING:
 
         addi s1,s1,1
         lb t0,0(s1)
-        li t1,69 #controllo E,  carattere successivo al primo, già controllato
+        li t1,69 #controllo E,  carattere successivo al primo, gi? controllato
         bne t0,t1, invalid_format
 
         addi s1,s1,1
@@ -770,15 +770,6 @@ find_next_free_addr: #ritorno in a1
             
             addi sp,sp,-4
             sw a0,0(sp) #salvo  a0 nello stack
-            
-            
-            # mv a0,a1 #DEBUG: MOSTRA INDIRIZZO
-                # li a7,34
-            # ecall
-            
-            # li a0,10 #stampo un ritorno di linea
-            # li a7,11
-            # ecall
             
             lw a0,0(sp)
             addi sp,sp,4 # ripristino la stack

@@ -1,0 +1,60 @@
+\documentclass[10pt]{article}
+\usepackage[inkscapelatex=false]{svg}
+\usepackage{geometry}
+\geometry{margin=1.5in}
+\usepackage{subfig}
+\usepackage{graphicx} 
+\usepackage{nopageno}
+\title{Relazione progetto finale Architetture degli Elaboratori - A.A. 2024/2025}
+
+\date{}
+
+\begin{document}
+   
+    \maketitle
+    \begin{center}
+        {\includesvg[width=0.75\columnwidth]{img/unifi.svg}}
+    \end{center}
+
+    \begin{center}
+        \vspace{9cm}
+        \author{Silvio Santoriello\\ \textit{silvio.santoriello@edu.unifi.it}
+        \\ Mat. 7158636
+        }
+    \end{center}
+    \pagestyle{plain}
+    
+    \newpage
+    
+    \section{Main loop e parsing della stringa}
+    Secondo le specifiche del progetto, l'input viene passato tramite stringa \textit{listInput} all'interno della sezione \textit{.data}. e ogni comando ben formattato è separato da $\sim$ (carattere ASCII 126).
+
+    Il main loop trasferisce immediatamente il controllo alla funzione di PARSING, che analizzerà carattere per carattere il \textit{listInput}.\\ \\
+
+    \subsection{PARSING}
+
+        Tale procedura consiste di un ciclo principale, chiamato \textit{parsing\_loop} che controlla innanzitutto la presenza di spazio o tilde e nel caso li ignora, proseguendo la scansione.
+        \\Ho preferito dividere la fase di parsing in più parti:
+        \begin{itemize}
+            \item[$\diamond$] identificazione del comando (tramite \textit{identify\_command})
+            \item[$\diamond$] validazione del formato del comando (tramite \textit{process\_\textbf{x}\_command} e \textit{verify\_\textbf{x}\_format)}
+            \item[$\diamond$] esecuzione/non esecuzione sulla base del risultato della validazione
+        \end{itemize}
+
+        Il comando viene identificato tramite un serie di controlli annidati, riassunti in parte dal seguente schema: \\ \\
+        \begin{figure}
+            \centering
+            \includesvg[width=0.5\linewidth]{img/identify_command_chart.svg}
+            \caption{Caption}
+            \label{fig:enter-label}
+        \end{figure}
+
+        
+    
+        
+        
+    
+
+    
+
+\end{document}
