@@ -1,6 +1,6 @@
 .data
 
-    listInput: .string "ADD(S) ~ ADD(i) ~ ADD(l) ~ ADD(v) ~ ADD(i) ~ADD(o) ~ ADD(;) ~ ADD(9)PRINT~PRINT ~REV~SOR~PRINT~DEL(b) ~DEL(B)~PRI~PRI~NT~REV~SO~RT~~PRINT"
+    listInput: .string "ADD(S) ~ ADD(i) ~ ADD(l) ~ ADD(v) ~ ADD(i) ~ADD(o)ADD(j)~~~ADD(o) ~ ADD(;) ~ ADD(9)PRINT~PRINT ~REV~SOR~PRINT~DEL(b) ~DEL(S)~PRI~PRI~NT~PRINT~~REV~SO~RT~SORT~PRINT"
     
 
 .text
@@ -9,7 +9,7 @@ la s1,listInput #salvo la testa della stringa di input che passera alla funzione
 li s2,0 #HEAD_PTR puntatore alla testa della lista
 li s3,0 #LAST_PTR puntatore all'ultimo elemento della lista
 li s4,0 #counter dei nodi
-li s5,0x10000000 #carico NEXT_FREE_ADDR, indirizzo di inizio dei dati statici
+li s5,0x20000000 #carico NEXT_FREE_ADDR, indirizzo di inizio dei dati statici
 jal PARSING  #devo implementare la logica di parsing
 
 
@@ -103,7 +103,7 @@ PARSING:
 
     process_print_command:
         jal verify_print_format
-        beqz a0, invalid_command    
+        beqz a1, invalid_command    
         
         jal PRINT
 
@@ -111,7 +111,7 @@ PARSING:
 
     process_sort_command:
         jal verify_sort_format
-        beqz a0, invalid_command    
+        beqz a1, invalid_command    
         
         jal SORT
 
@@ -119,7 +119,7 @@ PARSING:
 
     process_rev_command:
         jal verify_rev_format
-        beqz a0, invalid_command    
+        beqz a1, invalid_command    
         
         jal REV
 
@@ -127,7 +127,7 @@ PARSING:
 
     process_del_command:
         jal verify_del_format
-        beqz a0, invalid_command    
+        beqz a1, invalid_command    
         
         jal DEL
 
