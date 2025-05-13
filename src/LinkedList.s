@@ -1,8 +1,7 @@
 .data
 
-    listInput: .string "ADD(S) ~ ADD(i) ~ ADD(l) ~ ADD(v) ~ ADD(i) ~ADD(o)ADD(j)~~~ADD(o) ~ ADD(;) ~ ADD(9)PRINT~PRINT ~REV~SOR~PRINT~DEL(b) ~DEL(S)~PRI~PRI~NT~PRINT~~REV~SO~RT~SORT~PRINT"
-    
-
+    #listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~    ADD(9) ~SORT~PRINT~DEL(b) ~DEL(B)~PRI~REV~PRINT"
+    listInput: .string "ADD(1) ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRINT~SORT(a)~PRINT~DEL(bb) ~DEL(B)~PRINT~REV~PRINT"    
 .text
 
 la s1,listInput #salvo la testa della stringa di input che passera alla funzione di parsing
