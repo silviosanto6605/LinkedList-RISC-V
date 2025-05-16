@@ -2,7 +2,7 @@
 \usepackage[inkscapelatex=false]{svg}
 \usepackage{geometry}
 \usepackage[dvipsnames]{xcolor}
-\geometry{margin=1.5in,tmargin=1.5cm}
+\geometry{margin=1.5in,tmargin=1.5cm,footnotesep=50pt}
 \usepackage{subfigure}
 \usepackage{float}
 \usepackage{graphicx}
@@ -23,6 +23,7 @@
 \author{Silvio Santoriello}
 
 \begin{document}
+\justifying
     
      \thispagestyle{empty}
     
@@ -55,7 +56,7 @@
     
 
     \chapter{Parsing della stringa di input}
-    \justifying
+    
     \section{Intro}
     
     Secondo le specifiche del progetto, l'input viene passato tramite stringa \textit{listInput} all'interno della sezione \textit{.data}. e ogni comando ben formattato è separato da $\sim$ (carattere ASCII 126).
@@ -72,18 +73,18 @@
             \item[$\diamond$] esecuzione/non esecuzione sulla base del risultato della validazione
         \end{itemize}
 
-        Il comando, tramite l'iniziale \textit{identify\_command}, viene identificato attraverso una serie di controlli annidati, riassunti in parte dalla \ref{fig1:1a}.
+        Il comando, tramite l'iniziale \textit{identify\_command}, viene identificato attraverso una serie di controlli annidati, riassunti in parte dalla \ref{fig:1a}.
         \begin{figure}[H]
             \centering
 
             \subfigure[Identificzione comando]{%
                 \includesvg[width=0.40\linewidth]{img/identify_command_chart.svg}
-                \label{fig1:1a} 
+                \label{fig:1a} 
             }
             \hfill
             \subfigure[Codice]{
                 \includegraphics[width=0.40\linewidth]{img/identify_command.png}
-                \label{fig1:1b}
+                \label{fig:1b}
             }
             \label{fig1}
             \caption[]{}
@@ -112,7 +113,6 @@
     In caso contrario vuol dire che è stata richiamata la procedura \textit{invalid\_format} che carica in \textit{a1} il valore 0 e ritorna al chiamante.
     \newpage
     \chapter{Funzioni}
-    \justifying
     \section{Premessa}
     Le varie funzioni sono state implementate modularmente e sono state realizzate in modo da mantenere il più possibile valido il principio di regolarità, cruciale nell'architettura RISC-V. Tutte le funzioni che necessitano di parametri (cioé \textit{ADD} e \textit{DEL} li accettano nel registro \textit{a0}, mentre tutte le funzioni che devono restituire dei valori li restituiscono in \textit{a1}. Inoltre tutte le procedure salvano all'inizio
 
@@ -155,7 +155,84 @@
     \end{mdframed}
 
     La stampa è gestita ricorsivamente, a partire dalla testa tramite la procedura \textit{print\_recursive} (che accetta in \textit{a0} un indirizzo, la quale stampa, se la HEAD non è zero (a causa di lista vuota o raggiungimento dell'ultimo elemento) il carattere di un nodo. Dopo di che, richiama ricorsivamente sé stessa, ma dopo aver aver scorso al nodo successivo e passando in \textit{a0} l'indirizzo del nodo successivo.\\
-    Per quanto concerne la gestione della memoria, ad ogni ricorsione
+    Per quanto concerne la gestione della memoria, ad ogni chiamata di \textit{print\_recursive} salvo nella stack sia il \textit{ra} come avviene usualmente e anche l'\textit{a0} che contiene l'indirizzo del nodo attuale (in totale salvo quindi 2 parole, cioé 8 bytes). Il salavataggio di \textit{a0} mi serve per poi riprenderlo dopo aver stampato uno spazio separatore (RIPES richiede per la stampa di un carattere di passare in \textit{a0} il carattere e in \textit{a7} il codice 1 per poi effettuare la \textit{ecall}).
+
+
+    \subsection{SORT}{
+  
+    
+        \begin{mdframed}
+            \texttt{parametri:} nessuno \\
+             \texttt{ritorno:} nessuno \\
+             \texttt{cosa fa:} ordina tramite algoritmo bubble sort ricorsivo i vari nodi, sulla base delle regole di ordinamento prefissate
+        \end{mdframed}
+
+    La funzione di ordinamento implementa bubbleSort ricorsivo con flag di controllo di avvenuti scambi. Il problema principale nel fare ciò è quello di rispettare le regole custom di ordinamento, brevemente riassunte di seguito:
+
+    \small
+    \begin{itemize}
+        \color{orange}\item una lettera maiuscola (ASCII da 65 a 90 compresi) viene sempre ritenuta maggiore di una minuscola
+        \color{blue}\item una lettera minuscola (ASCII da 97 a 122 compresi) viene sempre ritenuta maggiore di un numero
+        \color{magenta}\item un numero (ASCII da 48 a 57 compresi) viene sempre ritenuto maggiore di un carattere extra che implementiamo non sia una lettera funzione o numero
+        \color{black}\item non si considerano accettabili caratteri extra con codice ASCII minore di 32 o maggiore di 125.
+    \end{itemize}
+
+    L'approccio adottato è quello di \textit{"categorizzare"} i vari caratteri ed effettuare per caratteri di tipo differente, confronti basati sulla categoria.\\
+    Nel mio caso:
+    \begin{mdframed}
+        
+    \begin{itemize}
+    \label{categorie}
+        \item[$\diamond$] \textcolor{orange}{maiuscola} $\rightarrow$ categoria 3
+        \item[$\diamond$] \textcolor{blue}{maiuscola} $\rightarrow$ categoria 2
+        \item[$\diamond$] \textcolor{magenta}{numero} $\rightarrow$ categoria 1
+        \item[$\diamond$] \textcolor{black}{caratteri speciali} $\rightarrow$ categoria 0
+        \item[$\diamond$] \textcolor{red} {carattere non valido} $\rightarrow$ categoria -1
+    \end{itemize}
+    
+    \end{mdframed}
+    Tale categorizzazione viene effettuata dalla procedura \textit{get\_category} che prende in \textit{a0} il carattere da valutare e restituisce in \textit{a1} il numero della categoria.
+
+    Il resto del bubble sort viene gestito in maniera abbastanza semplice, tramite due cicli annidati. Il più esterno si occupa di gestire il caso in cui abbia finito la ricorsione e di resettare il flag di scambio avvenuto per ogni iterazione.\\
+    Il più interno, dopo aver salvato nella stack\footnote[1]{Ho decrementato lo stack pointer di 8 sebbene i byte che utilizzi siano effettivamente 7 (4 per contenere un indirizzo, e poi 3 per contenere il DATA del nodo corrente, del successivo e il contatore dei nodi ancora da processare) per evitare problemi di allineamento} controllato se è arrivato all'ultimo nodo, ottiene le categorie del carattere corrente e quella del successivo e sulla base dei valori restituiti valuta se effettuare o meno lo swap fra i DATA dei due nodi.\footnote[2]{Non è necessario agire sui puntatori, ma semplicemente sulle informazioni contenute}
+    Lo swap avviene appoggiandomi alla stack piuttosto che a registri temporanei e infine mettendo a \textit{true} il flag di scambio avvenuto. \footnote[3]{L'uso di un flag mi permette di evitare, nel caso di catena già ordinato, di effettuare scambi superflui}
+    }
+    
+    \subsection{REV}
+    \begin{mdframed}
+            \texttt{parametri:} nessuno \\
+             \texttt{ritorno:} nessuno \\
+             \texttt{cosa fa:} inverte la lista concatenata
+        \end{mdframed}
+    
+
+
+    \section{Funzioni di supporto}
+    Le funzioni principali \textit{ADD} e \textit{SORT} all'interno del loro corpo fanno riferimento a delle procedure di supporto: in particolare \textit{ADD} usa \textit{find\_next\_free\_addr} per individuare 5 byte liberi in memoria per l'inserimento di un nodo, mentre \textit{SORT} utilizza \textit{get\_category} per determinare la categoria del carattere.
+
+    \subsection{\textit{find\_next\_free\_addr}}
+
+    \begin{mdframed}
+            \texttt{parametri:} nessuno \\
+             \texttt{ritorno:} indirizzo di memoria (word) in a1\\
+             \texttt{cosa fa:} restituisce un indirizzo all'inizio di una porzione di 5 byte liberi
+        \end{mdframed}
+
+        La funzione in sé non è particolarmente complicata: scansiona sequenzialmente ogni byte a partire da un indirizzo base fisso (\textit{0x20000000})\footnote[1]{Ho scelto questo indirizzo di partenza per evitare del tutto conflitti con \textit{listInput}molto lunghi} finché non ne individua 5 consecutivi liberi, ritornando poi l'indirizzo della testa e aggiornando la variabile globale \textit{s5}che contiene la il byte immediatamente successivo ai 5 appena individuati, funzionale per scansioni successive. 
+        
+    \subsection{\textit{get\_category}}
+
+    \begin{mdframed}
+            \texttt{parametri:} carattere (1 byte) in a0 \\
+             \texttt{ritorno:} categoria (intero) in a1 \\
+             \texttt{cosa fa:} restituisce la categoria di un carattere \small(si veda \ref{categorie})
+        \end{mdframed}
+
+        La procedura è in realtà abbastanza semplice: preso un carattere, controlla innanzitutto la sua ammissibilità (cioé se è un ASCII tra 32 e 125), poi se è una lettera maiuscola (ASCII fra 65 e 90), maiuscola $\ldots$ \\
+
+
+    \chapter{Ulteriori osservazioni e conclusioni}
+    \chapter{}
     
     
     

@@ -766,12 +766,5 @@ find_next_free_addr: #ritorno in a1
             addi s5,s5,-4 # siccome sono andato avanti di 4 byte, vado indietro e ritorno
             mv a1,s5
             addi s5,s5,5 #siccome ora 5 byte sono occupati, faccio un grande balzo in avanti
-            
-            addi sp,sp,-4
-            sw a0,0(sp) #salvo  a0 nello stack
-            
-            lw a0,0(sp)
-            addi sp,sp,4 # ripristino la stack
-            
             ret
 
