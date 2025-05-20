@@ -12,9 +12,10 @@
 \usepackage{titlesec}
 \usepackage{datetime2}
 \usepackage{imakeidx}
+\usepackage{hyperref}
 \usepackage[normalem]{ulem}
 \usepackage{minted}
-
+\usepackage{spverbatim}
 \usepackage[italian]{babel}
 \usepackage[symbol]{footmisc}
 \titleformat{\chapter}[display]
@@ -218,7 +219,7 @@
              \texttt{cosa fa:} restituisce un indirizzo all'inizio di una porzione di 5 byte liberi
         \end{mdframed}
 
-        La funzione in sé non è particolarmente complicata: scansiona sequenzialmente ogni byte a partire da un indirizzo base fisso (\textit{0x20000000})\footnote[1]{Ho scelto questo indirizzo di partenza per evitare del tutto conflitti con \textit{listInput}molto lunghi} finché non ne individua 5 consecutivi liberi, ritornando poi l'indirizzo della testa e aggiornando la variabile globale \textit{s5}che contiene la il byte immediatamente successivo ai 5 appena individuati, funzionale per scansioni successive. 
+        La funzione in sé non è particolarmente complicata: scansiona sequenzialmente ogni byte a partire da un indirizzo base fisso (\textit{0x20000000})\footnote[1]{Ho scelto questo indirizzo di partenza per evitare del tutto conflitti con \textit{listInput} molto lunghi} finché non ne individua 5 consecutivi liberi, ritornando poi l'indirizzo della testa e aggiornando la variabile globale \textit{s5}che contiene la il byte immediatamente successivo ai 5 appena individuati, funzionale per scansioni successive. 
         
     \subsection{\textit{get\_category}}
 
@@ -231,10 +232,65 @@
         La procedura è in realtà abbastanza semplice: preso un carattere, controlla innanzitutto la sua ammissibilità (cioé se è un ASCII tra 32 e 125), poi se è una lettera maiuscola (ASCII fra 65 e 90), maiuscola $\ldots$ \\
 
 
-    \chapter{Ulteriori osservazioni e conclusioni}
-    \chapter{}
+    \chapter{Registri, memoria e conclusioni}
+    \section{Convenzioni sui registri}
+    Ho utilizzato 5 registri (\textit{s1-s5}) per memorizzare variabili globali
+    utili nel corso dell'esecuzione:
+    \begin{mdframed}
+            \texttt{s1:} contiene la testa alla stringa \textit{listInput} \\
+             \texttt{s2:} contiene \textit{HEAD\_PTR}, puntatore alla testa del primo nodo \\
+             \texttt{s3:} contiene \textit{LAST\_PTR}, puntatore alla testa dell'ultimo nodo\\
+             \texttt{s4:} contiene un contatore al numero di nodi nella lisat\\
+             \texttt{s5:} contiene il \textit{NEXT\_FREE\_ADDR}, successivo indirizzo libero per eventuale memorizzazione di nuovi nodi\\
+             
+        \end{mdframed}
+    
+    \section{Gestione della stack}
+    Oltre al classico salvataggio del \textit{ra} per il salvataggio dell'indirizzo di ritorno nel caso di procedure annidate o ricorsive, la stack viene usata nell'ambito della \textit{SORT} vista la necessità di più registri temporanei per il salvataggio dei caratteri coinvolti e delle loro categorie. \\Altro caso in cui l'uso della stack è necessario è durante l'operazione di \textit{REV}, dove salvo i vari \textit{DATA} dei vari caratteri, utilizzando 4 byte e non 1 solo per evitare problematiche di allineamento.\\
+
+    \section{Note a margine}
+
+    Il codice è stato testato sia su Linux che su Windows (ho notato problemi con la codifica del file e in particolare con le lettere accentuate) tramite Ripes v2.2.5 .
+    Lo sviluppo è avvenuto utilizzando congiuntamente Visual Studio Code per un editing migliore e testando i risultati con Ripes. Si segnala inoltre l'utilizzo del modello IA Claude 3.7 Sonnet, di supporto alla stesura del codice e di particolare aiuto nella progettazione della della SORT e della logica di PARSING.
+
+
+    \chapter{TEST}
+    Di seguito alcune stringhe di test aggiuntivi (nel caso di lista vuota, stringa mal formattata, ordinamento \ldots), corredate di relativi output\footnote{Le stringhe di test fornite nelle specifiche sono già state testate e i risultati sono quelli attesi}:
+    
+    \small
+    \begin{spverbatim}
+    ADD(a) ~ ADD(b) ~ ADD(c) ~ PRINT ~ SORT ~ PRINT ~ DEL(b) ~ PRINT ~ REV ~ PRINT
+    
+    a b c 
+    a b c 
+    a c 
+    c a 
+    Program exited with code: 0
+
+
+    ADD(a) ~ add(b) ~ ADD(cc) ~ ADD (d) ~ ADD~ ADD() ~ SORTA ~ PRINT ~ DEL() ~ DEL(a,b) ~ PRINT
+    
+   a 
+   a 
+   Program exited with code: 0
+
+
+    ADD(a) ~ ADD(.) ~ ADD(2) ~ ADD(E) ~ ADD(r) ~ ADD(4) ~ ADD(,) ~ ADD(w) ~ PRINT ~ SORT ~ PRINT
+
+    
+    a . 2 E r 4 , w 
+    , . 2 4 a r w E 
+    
+    Program exited with code: 0
+
+   
+    \end{spverbatim}
+    
+
     
     
+        
+
     
     
 \end{document}

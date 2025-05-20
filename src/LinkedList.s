@@ -1,7 +1,16 @@
 .data
 
-    #listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~    ADD(9) ~SORT~PRINT~DEL(b) ~DEL(B)~PRI~REV~PRINT"
-    listInput: .string "ADD(1) ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRINT~SORT(a)~PRINT~DEL(bb) ~DEL(B)~PRINT~REV~PRINT"    
+    #listInput: .string "ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~    ADD(9) ~SORT~PRINT~DEL(b) ~DEL(B)~PRI~REV~PRINT" #test 1 dalla relazione
+    #listInput: .string "ADD(1) ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRINT~SORT(a)~PRINT~DEL(bb) ~DEL(B)~PRINT~REV~PRINT" #test 2 dalla relazione
+
+    listInput: .string "ADD(a) ~ ADD(b) ~ ADD(c) ~ PRINT ~ SORT ~ PRINT ~ DEL(b) ~ PRINT ~ REV ~ PRINT" #test operazioni di base
+    #listInput: .string "ADD(5) ~ ADD(A) ~ ADD(z) ~ ADD(.) ~ ADD(B) ~ ADD(9) ~ ADD(t) ~ PRINT ~ SORT ~ PRINT" #test ordinamento
+    #listInput: .string "ADD(a) ~ add(b) ~ ADD(cc) ~ ADD (d) ~ ADD~ ADD() ~ SORTA ~ PRINT ~ DEL() ~ DEL(a,b) ~ PRINT" #test con formati errati
+    #listInput: .string "PRINT ~ SORT ~ REV ~ PRINT ~ ADD(x) ~ PRINT ~ DEL(x) ~ PRINT" #test con lista vuota
+    #listInput: .string "ADD(a) ~ ADD(.) ~ ADD(2) ~ ADD(E) ~ ADD(r) ~ ADD(4) ~ ADD(,) ~ ADD(w) ~ PRINT ~ SORT ~ PRINT" #test complesso
+    #listInput: .string "ADD(A) ~ ADD(B) ~ ADD(C) ~ ADD(D) ~ ADD(E) ~ PRINT ~ REV ~ PRINT ~ SORT ~ PRINT ~ ADD(1) ~ ADD(2) ~ ADD(3) ~ PRINT ~ DEL(2) ~ PRINT ~ DEL(C) ~ PRINT ~ REV ~ PRINT ~ SORT ~ PRINT" #test con molte operazioni
+    
+
 .text
 
 la s1,listInput #salvo la testa della stringa di input che passera alla funzione di parsing
